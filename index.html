@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Innoverse — ZHCET AMU</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #02040a;
+  --deep: #040810;
+  --surface: #060c18;
+  --cyan: #00f5ff;
+  --violet: #7c3aed;
+  --pink: #f0abfc;
+  --gold: #fbbf24;
+  --green: #10b981;
+  --text: #e2e8f0;
+  --muted: #475569;
+  --border: #0f172a;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Rajdhani',sans-serif;
+  overflow-x:hidden;
+  cursor:none;
+}
+
+/* ── CURSOR ── */
+#cur{
+  width:8px;height:8px;
+  background:var(--cyan);
+  border-radius:50%;
+  position:fixed;pointer-events:none;z-index:9999;
+  box-shadow:0 0 12px var(--cyan),0 0 30px rgba(0,245,255,.4);
+  transition:transform .08s;
+}
+#cur-ring{
+  width:32px;height:32px;
+  border:1px solid rgba(0,245,255,.5);
+  border-radius:50%;
+  position:fixed;pointer-events:none;z-index:9998;
+  transition:transform .15s;
+}
+
+/* ── CANVAS ── */
+#particle-canvas{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+}
+
+/* ── NAV ── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:1000;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:1rem 3rem;
+  background:rgba(2,4,10,.8);
+  backdrop-filter:blur(24px);
+  border-bottom:1px solid rgba(0,245,255,.08);
+}
+.logo{
+  font-family:'Orbitron',monospace;
+  font-size:1.4rem;font-weight:900;
+  background:linear-gradient(90deg,var(--cyan),var(--violet));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  letter-spacing:.05em;text-decoration:none;
+}
+.nav-links{display:flex;gap:2rem;list-style:none}
+.nav-links a{
+  color:var(--muted);text-decoration:none;
+  font-size:.85rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  transition:color .2s;position:relative;
+  font-family:'Orbitron',monospace;font-size:.7rem;
+}
+.nav-links a::after{
+  content:'';position:absolute;bottom:-4px;left:0;right:0;height:1px;
+  background:var(--cyan);transform:scaleX(0);transition:transform .2s;
+}
+.nav-links a:hover{color:var(--cyan)}
+.nav-links a:hover::after{transform:scaleX(1)}
+.nav-join{
+  padding:.5rem 1.4rem;
+  background:transparent;border:1px solid var(--cyan);color:var(--cyan);
+  font-family:'Orbitron',monospace;font-size:.65rem;font-weight:700;
+  letter-spacing:.1em;cursor:pointer;text-decoration:none;
+  transition:all .2s;border-radius:2px;
+  text-transform:uppercase;
+}
+.nav-join:hover{background:var(--cyan);color:var(--bg);}
+
+/* ── HERO ── */
+#home{
+  min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  position:relative;z-index:1;
+  padding:6rem 2rem 4rem;
+  text-align:center;
+  overflow:hidden;
+}
+
+.hero-eyebrow{
+  font-family:'Orbitron',monospace;
+  font-size:.65rem;letter-spacing:.3em;text-transform:uppercase;
+  color:var(--cyan);margin-bottom:1.5rem;
+  opacity:0;animation:rise .8s .2s forwards;
+  display:flex;align-items:center;gap:1rem;justify-content:center;
+}
+.hero-eyebrow::before,.hero-eyebrow::after{
+  content:'';display:inline-block;width:40px;height:1px;background:var(--cyan);
+}
+
+.hero-title{
+  font-family:'Orbitron',monospace;
+  font-size:clamp(3.5rem,10vw,8rem);
+  font-weight:900;line-height:.9;
+  letter-spacing:-.02em;
+  margin-bottom:1rem;
+  opacity:0;animation:rise .8s .35s forwards;
+}
+.hero-title .word-inn{
+  display:block;
+  background:linear-gradient(135deg,#fff 0%,var(--cyan) 50%,var(--violet) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  filter:drop-shadow(0 0 40px rgba(0,245,255,.3));
+}
+.hero-title .word-verse{
+  display:block;
+  color:transparent;
+  -webkit-text-stroke:1.5px rgba(0,245,255,.6);
+  font-size:.65em;
+  letter-spacing:.2em;
+}
+
+.hero-sub{
+  font-size:1.1rem;font-weight:500;
+  color:rgba(226,232,240,.6);
+  max-width:520px;margin:1.5rem auto 0;
+  line-height:1.7;letter-spacing:.03em;
+  opacity:0;animation:rise .8s .5s forwards;
+}
+
+.hero-ctas{
+  display:flex;gap:1.2rem;justify-content:center;flex-wrap:wrap;
+  margin-top:2.8rem;
+  opacity:0;animation:rise .8s .65s forwards;
+}
+
+.btn-glow{
+  position:relative;
+  padding:.9rem 2.5rem;
+  background:linear-gradient(135deg,var(--cyan),var(--violet));
+  color:#fff;border:none;border-radius:2px;
+  font-family:'Orbitron',monospace;font-size:.75rem;font-weight:700;
+  letter-spacing:.12em;text-transform:uppercase;cursor:pointer;
+  text-decoration:none;display:inline-block;
+  transition:all .3s;
+  box-shadow:0 0 30px rgba(0,245,255,.3),0 0 60px rgba(124,58,237,.2);
+  overflow:hidden;
+}
+.btn-glow::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,.2),transparent);
+  transform:translateX(-100%) skewX(-15deg);
+  transition:transform .4s;
+}
+.btn-glow:hover::before{transform:translateX(200%) skewX(-15deg)}
+.btn-glow:hover{box-shadow:0 0 50px rgba(0,245,255,.5),0 0 100px rgba(124,58,237,.3);transform:translateY(-2px)}
+
+.btn-ghost{
+  padding:.9rem 2.5rem;
+  background:transparent;color:var(--text);
+  border:1px solid rgba(226,232,240,.15);border-radius:2px;
+  font-family:'Orbitron',monospace;font-size:.75rem;font-weight:700;
+  letter-spacing:.12em;text-transform:uppercase;cursor:pointer;
+  text-decoration:none;display:inline-block;
+  transition:all .3s;
+}
+.btn-ghost:hover{border-color:var(--cyan);color:var(--cyan);transform:translateY(-2px)}
+
+/* floating hexagons */
+.hex-float{
+  position:absolute;pointer-events:none;
+  font-size:1.2rem;opacity:.08;
+  animation:float-hex linear infinite;
+}
+
+@keyframes float-hex{
+  0%{transform:translateY(100vh) rotate(0deg);opacity:0}
+  10%{opacity:.08}
+  90%{opacity:.08}
+  100%{transform:translateY(-20vh) rotate(360deg);opacity:0}
+}
+
+/* hero stats */
+.hero-stats{
+  display:flex;gap:4rem;justify-content:center;
+  margin-top:3.5rem;
+  opacity:0;animation:rise .8s .8s forwards;
+}
+.hstat{text-align:center}
+.hstat-n{
+  font-family:'Orbitron',monospace;
+  font-size:2.2rem;font-weight:900;
+  background:linear-gradient(90deg,var(--cyan),var(--violet));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.hstat-l{font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-top:.2rem}
+
+/* scroll indicator */
+.scroll-hint{
+  position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);
+  display:flex;flex-direction:column;align-items:center;gap:.5rem;
+  opacity:0;animation:rise .8s 1.2s forwards;
+}
+.scroll-hint span{font-family:'Orbitron',monospace;font-size:.55rem;letter-spacing:.2em;color:var(--muted)}
+.scroll-line{width:1px;height:45px;background:linear-gradient(to bottom,var(--cyan),transparent);animation:scanline 1.8s ease-in-out infinite}
+@keyframes scanline{0%{transform:scaleY(0);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}50.01%{transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+
+@keyframes rise{
+  from{opacity:0;transform:translateY(28px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+/* ── SECTIONS ── */
+section{position:relative;z-index:1;padding:7rem 2rem}
+.inner{max-width:1100px;margin:0 auto}
+
+.s-label{
+  font-family:'Orbitron',monospace;font-size:.6rem;
+  letter-spacing:.25em;text-transform:uppercase;color:var(--cyan);
+  display:flex;align-items:center;gap:.75rem;margin-bottom:.8rem;
+}
+.s-label::before{content:'';display:inline-block;width:28px;height:1px;background:var(--cyan)}
+
+.s-title{
+  font-family:'Orbitron',monospace;
+  font-size:clamp(1.8rem,4vw,3rem);font-weight:900;
+  letter-spacing:-.02em;line-height:1.05;margin-bottom:1rem;
+}
+.s-sub{
+  font-size:1rem;font-weight:400;color:rgba(226,232,240,.5);
+  max-width:480px;line-height:1.7;letter-spacing:.02em;
+}
+
+/* ── ABOUT ── */
+#about{background:var(--surface);border-top:1px solid rgba(0,245,255,.06);border-bottom:1px solid rgba(0,245,255,.06)}
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:center}
+
+.about-pills{display:flex;flex-wrap:wrap;gap:.7rem;margin-top:2rem}
+.pill{
+  padding:.45rem 1rem;border-radius:2px;
+  border:1px solid rgba(0,245,255,.2);
+  font-size:.8rem;font-weight:600;letter-spacing:.06em;
+  color:var(--cyan);background:rgba(0,245,255,.05);
+  transition:all .2s;
+}
+.pill:hover{background:rgba(0,245,255,.15);border-color:var(--cyan)}
+
+.about-cards{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.acard{
+  background:rgba(0,0,0,.3);border:1px solid rgba(0,245,255,.08);
+  border-radius:4px;padding:1.4rem;
+  transition:all .3s;position:relative;overflow:hidden;
+}
+.acard::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--cyan),var(--violet));
+  transform:scaleX(0);transition:transform .3s;
+}
+.acard:hover{border-color:rgba(0,245,255,.25);transform:translateY(-3px)}
+.acard:hover::before{transform:scaleX(1)}
+.acard-icon{font-size:1.6rem;margin-bottom:.7rem}
+.acard-title{font-family:'Orbitron',monospace;font-size:.75rem;font-weight:700;margin-bottom:.4rem;color:var(--text)}
+.acard-desc{font-size:.82rem;color:var(--muted);line-height:1.6}
+
+/* ── EVENTS ── */
+#events .inner{}
+.events-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:3rem;flex-wrap:wrap;gap:1rem}
+.events-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem}
+
+.ecard{
+  background:rgba(4,8,16,.7);border:1px solid rgba(0,245,255,.07);
+  border-radius:4px;overflow:hidden;
+  position:relative;transition:all .3s;cursor:pointer;
+  backdrop-filter:blur(10px);
+}
+.ecard::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(0,245,255,.03),rgba(124,58,237,.03));
+  opacity:0;transition:opacity .3s;
+}
+.ecard:hover{border-color:rgba(0,245,255,.3);transform:translateY(-6px);box-shadow:0 20px 60px rgba(0,0,0,.5),0 0 30px rgba(0,245,255,.1)}
+.ecard:hover::after{opacity:1}
+
+.ecard-top{
+  height:120px;display:flex;align-items:center;justify-content:center;
+  font-size:2.8rem;position:relative;overflow:hidden;
+}
+.ecard-top::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(0,245,255,.08),rgba(124,58,237,.08));
+}
+
+.ecard-body{padding:1.4rem}
+.ecard-tags{display:flex;gap:.5rem;margin-bottom:.8rem;flex-wrap:wrap}
+.etag{
+  font-family:'Orbitron',monospace;font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;
+  padding:.2rem .6rem;border-radius:2px;
+}
+.etag-live{background:rgba(240,171,252,.1);color:var(--pink);border:1px solid rgba(240,171,252,.3);animation:pulse-tag 1.5s infinite}
+.etag-up{background:rgba(16,185,129,.1);color:var(--green);border:1px solid rgba(16,185,129,.3)}
+.etag-past{background:rgba(71,85,105,.15);color:var(--muted);border:1px solid rgba(71,85,105,.3)}
+@keyframes pulse-tag{0%,100%{opacity:1}50%{opacity:.5}}
+
+.ecard-title{font-family:'Orbitron',monospace;font-size:.9rem;font-weight:700;margin-bottom:.5rem;line-height:1.3}
+.ecard-desc{font-size:.82rem;color:var(--muted);line-height:1.6;margin-bottom:1rem}
+.ecard-date{font-family:'Orbitron',monospace;font-size:.6rem;color:var(--cyan);letter-spacing:.08em}
+
+/* ── TEAM ── */
+#team{background:var(--surface);border-top:1px solid rgba(0,245,255,.06);border-bottom:1px solid rgba(0,245,255,.06)}
+.team-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem;margin-top:3rem}
+
+.mcard{
+  background:rgba(0,0,0,.3);border:1px solid rgba(0,245,255,.07);
+  border-radius:4px;padding:1.8rem 1.2rem;text-align:center;
+  transition:all .3s;position:relative;overflow:hidden;
+}
+.mcard-glow{
+  position:absolute;width:100px;height:100px;border-radius:50%;
+  background:radial-gradient(circle,rgba(0,245,255,.15),transparent);
+  top:50%;left:50%;transform:translate(-50%,-50%);
+  opacity:0;transition:opacity .3s;pointer-events:none;
+}
+.mcard:hover .mcard-glow{opacity:1}
+.mcard:hover{border-color:rgba(0,245,255,.25);transform:translateY(-4px)}
+
+.mavatar{
+  width:68px;height:68px;border-radius:50%;
+  background:linear-gradient(135deg,rgba(0,245,255,.15),rgba(124,58,237,.15));
+  border:2px solid rgba(0,245,255,.2);
+  margin:0 auto 1rem;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.8rem;transition:border-color .3s;
+}
+.mcard:hover .mavatar{border-color:var(--cyan)}
+.mname{font-family:'Orbitron',monospace;font-size:.78rem;font-weight:700;margin-bottom:.3rem}
+.mrole{font-size:.72rem;color:var(--cyan);letter-spacing:.06em;margin-bottom:.25rem}
+.mdept{font-size:.65rem;color:var(--muted)}
+
+/* ── GALLERY ── */
+#gallery{}
+.gallery-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  grid-auto-rows:200px;
+  gap:1rem;margin-top:3rem;
+}
+.gitem{
+  background:rgba(4,8,16,.8);border:1px solid rgba(0,245,255,.07);
+  border-radius:4px;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+  font-size:2.5rem;position:relative;cursor:pointer;
+  transition:all .3s;
+}
+.gitem:nth-child(1){grid-column:span 2;grid-row:span 2;font-size:4rem}
+.gitem::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(0,245,255,.05),rgba(124,58,237,.05));
+}
+.gitem:hover{border-color:rgba(0,245,255,.3);box-shadow:0 0 30px rgba(0,245,255,.1)}
+.gitem .glabel{
+  position:absolute;bottom:0;left:0;right:0;
+  padding:.7rem 1rem;
+  background:linear-gradient(to top,rgba(2,4,10,.95),transparent);
+  font-family:'Orbitron',monospace;font-size:.6rem;letter-spacing:.08em;
+  color:var(--text);transform:translateY(100%);transition:transform .3s;
+  text-transform:uppercase;
+}
+.gitem:hover .glabel{transform:translateY(0)}
+.g1{background:linear-gradient(135deg,#030e1a,#071a2e)}
+.g2{background:linear-gradient(135deg,#050e1a,#0a1528)}
+.g3{background:linear-gradient(135deg,#080614,#130929)}
+.g4{background:linear-gradient(135deg,#0a0714,#1a0e2e)}
+.g5{background:linear-gradient(135deg,#040d0d,#082020)}
+
+/* ── CONTACT ── */
+#contact{background:var(--surface);border-top:1px solid rgba(0,245,255,.06)}
+.contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:start}
+
+.clinks{display:flex;flex-direction:column;gap:1rem;margin-top:2.5rem}
+.clink{
+  display:flex;align-items:center;gap:1.2rem;
+  padding:1rem 1.3rem;
+  background:rgba(0,0,0,.3);border:1px solid rgba(0,245,255,.08);
+  border-radius:4px;text-decoration:none;color:var(--text);
+  transition:all .2s;font-size:.85rem;font-weight:500;
+}
+.clink:hover{border-color:var(--cyan);color:var(--cyan);transform:translateX(6px);box-shadow:inset 0 0 20px rgba(0,245,255,.05)}
+.clink-icon{font-size:1.2rem;flex-shrink:0}
+.clink-lbl{font-family:'Orbitron',monospace;font-size:.55rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:.1rem}
+
+.cform{
+  background:rgba(0,0,0,.3);border:1px solid rgba(0,245,255,.08);
+  border-radius:4px;padding:2.2rem;
+}
+.cform-title{
+  font-family:'Orbitron',monospace;font-size:.8rem;font-weight:700;
+  color:var(--cyan);margin-bottom:1.8rem;letter-spacing:.1em;
+}
+.fg{margin-bottom:1.2rem}
+.fl{
+  display:block;font-family:'Orbitron',monospace;font-size:.58rem;
+  color:var(--muted);letter-spacing:.12em;text-transform:uppercase;margin-bottom:.5rem;
+}
+.fi,.fta{
+  width:100%;background:rgba(2,4,10,.8);
+  border:1px solid rgba(0,245,255,.1);border-radius:2px;
+  padding:.75rem 1rem;color:var(--text);
+  font-family:'Rajdhani',sans-serif;font-size:.9rem;
+  outline:none;transition:border-color .2s;
+}
+.fi:focus,.fta:focus{border-color:var(--cyan);box-shadow:0 0 0 1px rgba(0,245,255,.2)}
+.fta{min-height:100px;resize:vertical}
+.fsub{
+  width:100%;padding:.85rem;
+  background:linear-gradient(135deg,var(--cyan),var(--violet));
+  color:#fff;border:none;border-radius:2px;
+  font-family:'Orbitron',monospace;font-size:.75rem;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;cursor:pointer;
+  transition:all .2s;margin-top:.5rem;
+}
+.fsub:hover{opacity:.9;transform:translateY(-1px);box-shadow:0 10px 30px rgba(0,245,255,.2)}
+
+/* ── FOOTER ── */
+footer{
+  position:relative;z-index:1;
+  border-top:1px solid rgba(0,245,255,.06);
+  padding:2rem 3rem;
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;
+}
+.flogo{font-family:'Orbitron',monospace;font-size:1rem;font-weight:900;
+  background:linear-gradient(90deg,var(--cyan),var(--violet));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.fcopy{font-family:'Orbitron',monospace;font-size:.58rem;color:var(--muted);letter-spacing:.08em}
+.flinks{display:flex;gap:1.5rem}
+.flinks a{font-family:'Orbitron',monospace;font-size:.58rem;color:var(--muted);text-decoration:none;letter-spacing:.08em;text-transform:uppercase;transition:color .2s}
+.flinks a:hover{color:var(--cyan)}
+
+/* ── GLITCH ── */
+.glitch{
+  position:relative;display:inline-block;
+}
+.glitch::before,.glitch::after{
+  content:attr(data-text);
+  position:absolute;top:0;left:0;width:100%;
+  background:linear-gradient(135deg,#fff 0%,var(--cyan) 50%,var(--violet) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.glitch::before{animation:glitch1 3s infinite;clip-path:polygon(0 20%,100% 20%,100% 40%,0 40%)}
+.glitch::after{animation:glitch2 3s infinite;clip-path:polygon(0 60%,100% 60%,100% 80%,0 80%)}
+@keyframes glitch1{
+  0%,90%,100%{transform:none;opacity:0}
+  92%{transform:translateX(-3px);opacity:.7}
+  94%{transform:translateX(3px);opacity:.7}
+  96%{transform:none;opacity:0}
+}
+@keyframes glitch2{
+  0%,85%,100%{transform:none;opacity:0}
+  87%{transform:translateX(3px);opacity:.5}
+  89%{transform:translateX(-3px);opacity:.5}
+  91%{transform:none;opacity:0}
+}
+
+/* ── REVEAL ── */
+.rv{opacity:0;transform:translateY(32px);transition:opacity .7s ease,transform .7s ease}
+.rv.on{opacity:1;transform:none}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  nav{padding:1rem 1.5rem}
+  .nav-links{display:none}
+  section{padding:5rem 1.5rem}
+  .about-grid,.contact-grid{grid-template-columns:1fr;gap:3rem}
+  .events-grid{grid-template-columns:repeat(2,1fr)}
+  .team-grid{grid-template-columns:repeat(2,1fr)}
+  .gallery-grid{grid-template-columns:1fr 1fr}
+  .gitem:nth-child(1){grid-column:span 2}
+  footer{flex-direction:column;text-align:center}
+}
+@media(max-width:580px){
+  .hero-stats{gap:1.8rem}
+  .events-grid{grid-template-columns:1fr}
+  .team-grid{grid-template-columns:1fr 1fr}
+  .gallery-grid{grid-template-columns:1fr}
+  .gitem:nth-child(1){grid-column:span 1}
+  .about-cards{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div id="cur"></div>
+<div id="cur-ring"></div>
+<canvas id="particle-canvas"></canvas>
+
+<!-- NAV -->
+<nav>
+  <a href="#home" class="logo">INNOVERSE</a>
+  <ul class="nav-links">
+    <li><a href="#home">Home</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#events">Events</a></li>
+    <li><a href="#team">Team</a></li>
+    <li><a href="#gallery">Gallery</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <a href="#contact" class="nav-join">Join Us</a>
+</nav>
+
+<!-- HERO -->
+<section id="home">
+  <div class="hero-eyebrow">ZHCET · AMU · Aligarh</div>
+  <h1 class="hero-title">
+    <span class="word-inn glitch" data-text="INNO">INNO</span>
+    <span class="word-verse">VERSE</span>
+  </h1>
+  <p class="hero-sub">Where imagination meets engineering. The official tech &amp; innovation club of Zakir Husain College of Engineering &amp; Technology, AMU.</p>
+  <div class="hero-ctas">
+    <a href="#events" class="btn-glow">Explore Events</a>
+    <a href="#contact" class="btn-ghost">Join the Club</a>
+  </div>
+  <div class="hero-stats">
+    <div class="hstat"><div class="hstat-n" data-target="300">0</div><div class="hstat-l">Members</div></div>
+    <div class="hstat"><div class="hstat-n" data-target="40">0</div><div class="hstat-l">Events</div></div>
+    <div class="hstat"><div class="hstat-n" data-target="25">0</div><div class="hstat-l">Projects</div></div>
+    <div class="hstat"><div class="hstat-n" data-target="5">0</div><div class="hstat-l">Years</div></div>
+  </div>
+  <div class="scroll-hint">
+    <span>scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="inner about-grid">
+    <div class="rv">
+      <div class="s-label">About Innoverse</div>
+      <h2 class="s-title">We Turn Ideas Into Reality</h2>
+      <p class="s-sub" style="margin-bottom:1.2rem">Innoverse is the flagship tech &amp; innovation club of ZHCET, AMU — a community of passionate builders, hackers, and creators driven by curiosity and impact.</p>
+      <p class="s-sub">From 24-hour hackathons to AI workshops, competitive coding to open-source projects, Innoverse is where the next generation of engineers is forged.</p>
+      <div class="about-pills">
+        <span class="pill">Hackathons</span>
+        <span class="pill">AI / ML</span>
+        <span class="pill">Web Dev</span>
+        <span class="pill">Competitive Coding</span>
+        <span class="pill">Cybersecurity</span>
+        <span class="pill">Open Source</span>
+        <span class="pill">Robotics</span>
+        <span class="pill">IoT</span>
+      </div>
+    </div>
+    <div class="about-cards rv">
+      <div class="acard">
+        <div class="acard-icon">⚡</div>
+        <div class="acard-title">Build Fast</div>
+        <div class="acard-desc">24-hour hackathons that push you to prototype, ship, and present real solutions under pressure.</div>
+      </div>
+      <div class="acard">
+        <div class="acard-icon">🧠</div>
+        <div class="acard-title">Learn Deep</div>
+        <div class="acard-desc">Workshops on cutting-edge tech — from LLMs to embedded systems — taught by industry experts.</div>
+      </div>
+      <div class="acard">
+        <div class="acard-icon">🌐</div>
+        <div class="acard-title">Connect Wide</div>
+        <div class="acard-desc">Network with alumni at top companies, collaborate with teams across India, grow your circle.</div>
+      </div>
+      <div class="acard">
+        <div class="acard-icon">🏆</div>
+        <div class="acard-title">Compete Hard</div>
+        <div class="acard-desc">Represent ZHCET at national hackathons, ICPC, and inter-college coding championships.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EVENTS -->
+<section id="events">
+  <div class="inner">
+    <div class="events-head rv">
+      <div>
+        <div class="s-label">Events</div>
+        <h2 class="s-title">What We're Cooking</h2>
+      </div>
+      <a href="#contact" class="btn-ghost" style="font-size:.65rem;padding:.6rem 1.4rem">All Events →</a>
+    </div>
+    <div class="events-grid">
+      <div class="ecard rv">
+        <div class="ecard-top g1">🚀</div>
+        <div class="ecard-body">
+          <div class="ecard-tags"><span class="etag etag-live">● Live Now</span></div>
+          <div class="ecard-title">Innoverse Hackathon 3.0</div>
+          <div class="ecard-desc">Our flagship 24-hour hackathon. Build anything with any tech. Open to all AMU students. Prize pool: ₹60,000.</div>
+          <div class="ecard-date">📅 March 14–15, 2026 · ZHCET Campus</div>
+        </div>
+      </div>
+      <div class="ecard rv">
+        <div class="ecard-top g2">🤖</div>
+        <div class="ecard-body">
+          <div class="ecard-tags"><span class="etag etag-up">Upcoming</span></div>
+          <div class="ecard-title">Deep Learning Bootcamp</div>
+          <div class="ecard-desc">5-day intensive workshop covering neural networks, PyTorch, transformers and hands-on model fine-tuning.</div>
+          <div class="ecard-date">📅 April 2–6, 2026</div>
+        </div>
+      </div>
+      <div class="ecard rv">
+        <div class="ecard-top g3">🔐</div>
+        <div class="ecard-body">
+          <div class="ecard-tags"><span class="etag etag-up">Upcoming</span></div>
+          <div class="ecard-title">CyberSec CTF 2026</div>
+          <div class="ecard-desc">Capture The Flag competition. Web exploitation, reverse engineering, cryptography and forensics challenges.</div>
+          <div class="ecard-date">📅 April 20, 2026</div>
+        </div>
+      </div>
+      <div class="ecard rv">
+        <div class="ecard-top g4">💻</div>
+        <div class="ecard-body">
+          <div class="ecard-tags"><span class="etag etag-past">Past</span></div>
+          <div class="ecard-title">Code Sprint — CP Series</div>
+          <div class="ecard-desc">Weekly rated competitive programming contest with editorial discussions and ICPC-style problems.</div>
+          <div class="ecard-date">📅 Every Saturday 8 PM IST</div>
+        </div>
+      </div>
+      <div class="ecard rv">
+        <div class="ecard-top g5">🌐</div>
+        <div class="ecard-body">
+          <div class="ecard-tags"><span class="etag etag-past">Past</span></div>
+          <div class="ecard-title">Full-Stack Blitz</div>
+          <div class="ecard-desc">3-day workshop on React, Node.js, MongoDB, and cloud deployment. Hands-on project-based learning.</div>
+          <div class="ecard-date">📅 February 10–12, 2026</div>
+        </div>
+      </div>
+      <div class="ecard rv">
+        <div class="ecard-top g1">🎤</div>
+        <div class="ecard-body">
+          <div class="ecard-tags"><span class="etag etag-past">Past</span></div>
+          <div class="ecard-title">TechTalk: Industry Insider</div>
+          <div class="ecard-desc">Alumni panel with engineers at Google, Microsoft and Flipkart sharing real career journeys and advice.</div>
+          <div class="ecard-date">📅 January 18, 2026</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TEAM -->
+<section id="team">
+  <div class="inner">
+    <div class="rv">
+      <div class="s-label">The Team</div>
+      <h2 class="s-title">Minds Behind Innoverse</h2>
+      <p class="s-sub">Passionate engineers and leaders shaping the future of tech at ZHCET.</p>
+    </div>
+    <div class="team-grid">
+      <div class="mcard rv"><div class="mcard-glow"></div><div class="mavatar">👑</div><div class="mname">Aryan Khan</div><div class="mrole">President</div><div class="mdept">B.Tech CSE · 4th Year</div></div>
+      <div class="mcard rv"><div class="mcard-glow"></div><div class="mavatar">⚙️</div><div class="mname">Zara Siddiqui</div><div class="mrole">Vice President</div><div class="mdept">B.Tech IT · 4th Year</div></div>
+      <div class="mcard rv"><div class="mcard-glow"></div><div class="mavatar">🎯</div><div class="mname">Omar Farooqui</div><div class="mrole">Tech Lead</div><div class="mdept">B.Tech CSE · 3rd Year</div></div>
+      <div class="mcard rv"><div class="mcard-glow"></div><div class="mavatar">📊</div><div class="mname">Aisha Mirza</div><div class="mrole">Events Head</div><div class="mdept">B.Tech ECE · 3rd Year</div></div>
+      <div class="mcard rv"><div class="mcard-glow"></div><div class="mavatar">🎨</div><div class="mname">Hamid Ansari</div><div class="mrole">Design Lead</div><div class="mdept">B.Tech CSE · 2nd Year</div></div>
+      <div class="mcard rv"><div class="mcard-glow"></div><div class="mavatar">🔒</div><div class="mname">Sara Naqvi</div><div class="mrole">Security Lead</div><div class="mdept">B.Tech IT · 2nd Year</div></div>
+      <div class="mcard rv"><div class="mcard-glow"></div><div class="mavatar">🤖</div><div class="mname">Bilal Ahmed</div><div class="mrole">AI/ML Lead</div><div class="mdept">B.Tech CSE · 3rd Year</div></div>
+      <div class="mcard rv"><div class="mcard-glow"></div><div class="mavatar">📱</div><div class="mname">Nida Rizvi</div><div class="mrole">App Dev Lead</div><div class="mdept">B.Tech IT · 2nd Year</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- GALLERY -->
+<section id="gallery">
+  <div class="inner">
+    <div class="rv">
+      <div class="s-label">Gallery</div>
+      <h2 class="s-title">Moments That Matter</h2>
+    </div>
+    <div class="gallery-grid">
+      <div class="gitem g1 rv">🏆<div class="glabel">Hackathon 2.0 — Grand Finale</div></div>
+      <div class="gitem g2 rv">🤖<div class="glabel">AI Workshop Session</div></div>
+      <div class="gitem g3 rv">🎤<div class="glabel">TechTalk Speaker Panel</div></div>
+      <div class="gitem g4 rv">🤝<div class="glabel">Club Orientation 2025</div></div>
+      <div class="gitem g5 rv">🏅<div class="glabel">National Hackathon Win</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="inner contact-grid">
+    <div class="rv">
+      <div class="s-label">Contact</div>
+      <h2 class="s-title">Let's Connect</h2>
+      <p class="s-sub">Want to join, collaborate, or sponsor Innoverse? We'd love to hear from you.</p>
+      <div class="clinks">
+        <a href="https://instagram.com/innoverse_amu" target="_blank" class="clink">
+          <span class="clink-icon">📸</span>
+          <div><span class="clink-lbl">Instagram</span>@innoverse_amu</div>
+        </a>
+        <a href="mailto:innoverse@zhcet.ac.in" class="clink">
+          <span class="clink-icon">✉️</span>
+          <div><span class="clink-lbl">Email</span>innoverse@zhcet.ac.in</div>
+        </a>
+        <a href="#" class="clink">
+          <span class="clink-icon">💼</span>
+          <div><span class="clink-lbl">LinkedIn</span>Innoverse ZHCET AMU</div>
+        </a>
+        <a href="#" class="clink">
+          <span class="clink-icon">💬</span>
+          <div><span class="clink-lbl">Discord</span>discord.gg/innoverse-amu</div>
+        </a>
+      </div>
+    </div>
+    <div class="cform rv">
+      <div class="cform-title">// SEND_MESSAGE()</div>
+      <div class="fg"><label class="fl">Name</label><input type="text" class="fi" placeholder="Your full name"/></div>
+      <div class="fg"><label class="fl">Email</label><input type="email" class="fi" placeholder="your@email.com"/></div>
+      <div class="fg"><label class="fl">Subject</label><input type="text" class="fi" placeholder="Join / Collaborate / Sponsor"/></div>
+      <div class="fg"><label class="fl">Message</label><textarea class="fta" placeholder="Tell us about yourself..."></textarea></div>
+      <button class="fsub" onclick="submitForm(this)">Transmit Message →</button>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="flogo">INNOVERSE</div>
+  <div class="fcopy">© 2026 INNOVERSE · ZHCET, AMU · ALL RIGHTS RESERVED</div>
+  <div class="flinks">
+    <a href="#home">Home</a>
+    <a href="#about">About</a>
+    <a href="#events">Events</a>
+    <a href="#contact">Contact</a>
+  </div>
+</footer>
+
+<script>
+/* ═══════════════════════════════════════
+   PARTICLE SYSTEM
+═══════════════════════════════════════ */
+const canvas = document.getElementById('particle-canvas');
+const ctx = canvas.getContext('2d');
+let W, H, particles = [], mouse = {x: -9999, y: -9999};
+
+function resize(){
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+class Particle {
+  constructor(){this.reset(true)}
+  reset(init){
+    this.x = Math.random() * W;
+    this.y = init ? Math.random() * H : H + 10;
+    this.size = Math.random() * 1.8 + 0.3;
+    this.vx = (Math.random() - .5) * .4;
+    this.vy = -(Math.random() * .5 + .2);
+    this.alpha = Math.random() * .6 + .1;
+    this.life = 1;
+    this.decay = Math.random() * .003 + .001;
+    // color: cyan or violet or white
+    const r = Math.random();
+    if(r < .5) this.color = `rgba(0,245,255,`;
+    else if(r < .75) this.color = `rgba(124,58,237,`;
+    else this.color = `rgba(226,232,240,`;
+    // connection type
+    this.connected = false;
+  }
+  update(){
+    // mouse repulsion
+    const dx = this.x - mouse.x, dy = this.y - mouse.y;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    if(dist < 120){
+      const force = (120 - dist) / 120;
+      this.x += dx / dist * force * 2;
+      this.y += dy / dist * force * 2;
+    }
+    this.x += this.vx;
+    this.y += this.vy;
+    this.life -= this.decay;
+    if(this.life <= 0 || this.y < -10) this.reset(false);
+  }
+  draw(){
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.size, 0, Math.PI*2);
+    ctx.fillStyle = this.color + (this.alpha * this.life) + ')';
+    ctx.fill();
+  }
+}
+
+// Init particles
+const COUNT = Math.min(200, Math.floor(W * H / 6000));
+for(let i = 0; i < COUNT; i++) particles.push(new Particle());
+
+// Extra burst particles for sparkle
+class Spark {
+  constructor(x, y){
+    this.x = x; this.y = y;
+    this.vx = (Math.random()-.5)*4;
+    this.vy = (Math.random()-.5)*4;
+    this.life = 1;
+    this.size = Math.random()*2+.5;
+    this.color = Math.random() < .5 ? '0,245,255' : '124,58,237';
+  }
+  update(){this.x+=this.vx;this.y+=this.vy;this.life-=.03;this.vx*=.95;this.vy*=.95}
+  draw(){
+    ctx.beginPath();ctx.arc(this.x,this.y,this.size,0,Math.PI*2);
+    ctx.fillStyle=`rgba(${this.color},${this.life})`;ctx.fill();
+  }
+}
+let sparks = [];
+
+document.addEventListener('click', e => {
+  for(let i=0;i<20;i++) sparks.push(new Spark(e.clientX, e.clientY));
+});
+
+function drawConnections(){
+  for(let i = 0; i < particles.length; i++){
+    for(let j = i+1; j < particles.length; j++){
+      const p1 = particles[i], p2 = particles[j];
+      const dx = p1.x - p2.x, dy = p1.y - p2.y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if(dist < 130){
+        const alpha = (1 - dist/130) * .12 * p1.life * p2.life;
+        ctx.beginPath();
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
+        // color based on avg
+        ctx.strokeStyle = `rgba(0,245,255,${alpha})`;
+        ctx.lineWidth = .5;
+        ctx.stroke();
+      }
+    }
+  }
+}
+
+// Scan line effect
+let scanY = 0;
+function drawScanLine(){
+  scanY = (scanY + .5) % H;
+  const grad = ctx.createLinearGradient(0, scanY-30, 0, scanY+30);
+  grad.addColorStop(0, 'transparent');
+  grad.addColorStop(.5, 'rgba(0,245,255,.03)');
+  grad.addColorStop(1, 'transparent');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, scanY-30, W, 60);
+}
+
+function animate(){
+  ctx.clearRect(0, 0, W, H);
+  drawScanLine();
+  drawConnections();
+  particles.forEach(p => {p.update();p.draw()});
+  sparks = sparks.filter(s => s.life > 0);
+  sparks.forEach(s => {s.update();s.draw()});
+  requestAnimationFrame(animate);
+}
+animate();
+
+/* ═══════════════════════════════════════
+   CURSOR
+═══════════════════════════════════════ */
+const cur = document.getElementById('cur');
+const ring = document.getElementById('cur-ring');
+let rx = W/2, ry = H/2, mx2 = W/2, my2 = H/2;
+
+document.addEventListener('mousemove', e => {
+  mx2 = e.clientX; my2 = e.clientY;
+  mouse.x = e.clientX; mouse.y = e.clientY;
+  cur.style.left = (e.clientX - 4) + 'px';
+  cur.style.top  = (e.clientY - 4) + 'px';
+});
+
+(function curLoop(){
+  rx += (mx2 - 16 - rx) * .1;
+  ry += (my2 - 16 - ry) * .1;
+  ring.style.left = rx + 'px';
+  ring.style.top  = ry + 'px';
+  requestAnimationFrame(curLoop);
+})();
+
+['a','button','.ecard','.mcard','.gitem','.pill'].forEach(sel => {
+  document.querySelectorAll(sel).forEach(el => {
+    el.addEventListener('mouseenter', () => {cur.style.transform='scale(2.5)';ring.style.transform='scale(1.6)';ring.style.borderColor='var(--violet)'});
+    el.addEventListener('mouseleave', () => {cur.style.transform='';ring.style.transform='';ring.style.borderColor='rgba(0,245,255,.5)'});
+  });
+});
+
+/* ═══════════════════════════════════════
+   SCROLL REVEAL
+═══════════════════════════════════════ */
+const obs = new IntersectionObserver(entries => {
+  entries.forEach((e, i) => {
+    if(e.isIntersecting) setTimeout(() => e.target.classList.add('on'), i * 70);
+  });
+}, {threshold: .1, rootMargin: '0px 0px -40px 0px'});
+document.querySelectorAll('.rv').forEach(el => obs.observe(el));
+
+/* ═══════════════════════════════════════
+   COUNTER ANIMATION
+═══════════════════════════════════════ */
+const statObs = new IntersectionObserver(entries => {
+  if(!entries[0].isIntersecting) return;
+  document.querySelectorAll('.hstat-n').forEach(el => {
+    const target = parseInt(el.dataset.target);
+    let cur = 0;
+    const step = target / 70;
+    const t = setInterval(() => {
+      cur = Math.min(cur + step, target);
+      el.textContent = Math.floor(cur) + '+';
+      if(cur >= target) clearInterval(t);
+    }, 20);
+  });
+  statObs.disconnect();
+}, {threshold: .5});
+const statsEl = document.querySelector('.hero-stats');
+if(statsEl) statObs.observe(statsEl);
+
+/* ═══════════════════════════════════════
+   FORM SUBMIT
+═══════════════════════════════════════ */
+function submitForm(btn){
+  btn.textContent = 'Transmitting...';
+  btn.style.background = 'linear-gradient(135deg,var(--violet),var(--pink))';
+  setTimeout(() => {
+    btn.textContent = '✓ Message Transmitted';
+    btn.style.background = 'linear-gradient(135deg,var(--green),var(--cyan))';
+    setTimeout(() => {
+      btn.textContent = 'Transmit Message →';
+      btn.style.background = 'linear-gradient(135deg,var(--cyan),var(--violet))';
+    }, 3000);
+  }, 1500);
+}
+
+/* ═══════════════════════════════════════
+   FLOATING HEX SYMBOLS
+═══════════════════════════════════════ */
+const symbols = ['⬡','◈','⬟','⬢','◇','⟁','⬠'];
+const hero = document.getElementById('home');
+for(let i = 0; i < 12; i++){
+  const h = document.createElement('div');
+  h.className = 'hex-float';
+  h.textContent = symbols[Math.floor(Math.random()*symbols.length)];
+  h.style.left = Math.random()*100 + 'vw';
+  h.style.animationDuration = (Math.random()*15+10) + 's';
+  h.style.animationDelay = (Math.random()*10) + 's';
+  h.style.fontSize = (Math.random()*.8+.8) + 'rem';
+  hero.appendChild(h);
+}
+</script>
+</body>
+</html>
